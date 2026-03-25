@@ -40,24 +40,43 @@ def validar_movimentacao(data, tipo):
         raise ValueError("Campos obrigatórios: produto_id e quantidade")
     
     try:
-        qtd = float(data['quantidade'])
+        # Converte para inteiro (não float)
+        qtd = int(float(data['quantidade']))   # aceita "5.0" ou 5.0 ou "5"
         if qtd <= 0:
             raise ValueError(f"Quantidade deve ser positiva para {tipo}")
         return qtd
     except (TypeError, ValueError):
-        raise ValueError("Quantidade deve ser um número positivo")
+        raise ValueError("Quantidade deve ser um número positivo inteiro")
 
 # ────────────────────────────────────────────────
 # Função auxiliar: atualiza o estoque do produto
 # ────────────────────────────────────────────────
 def atualizar_estoque(produto_id, delta):
-    # delta positivo = entrada, negativo = saída/venda
-    supabase.table('produtos') \
-        .update({'estoque_atual': supabase.rpc('increment', {'x': delta})}) \
-        .eq('id', produto_id) \
-        .execute()
-    # Observação: crie uma função no Supabase chamada "increment" que faça: valor + x
-    # Alternativa simples sem RPC: usar raw SQL ou atualizar com select primeiro
+    """Atualiza o estoque somando ou subtraindo (delta positivo = entrada, negativo = saída)"""
+    try:
+        # Pega o estoque atual
+        response = supabase.table('produtos') \
+            .select('estoque_atual') \
+            .eq('id', produto_id) \
+            .execute()
+        
+        if not response.data:
+            raise ValueError("Produto não encontrado")
+        
+        estoque_atual = response.data[0]['estoque_atual']
+        novo_estoque = estoque_atual + delta
+        
+        # Atualiza
+        supabase.table('produtos') \
+            .update({'estoque_atual': novo_estoque}) \
+            .eq('id', produto_id) \
+            .execute()
+            
+        print(f"Estoque atualizado: {estoque_atual} → {novo_estoque} (delta: {delta})")
+        
+    except Exception as e:
+        print(f"ERRO ao atualizar estoque: {str(e)}")
+        raise
 
 # ────────────────────────────────────────────────
 # Rotas de teste
@@ -136,85 +155,168 @@ def produtos():
             return jsonify({"error": str(e)}), 500
 
 # ────────────────────────────────────────────────
-# MOVIMENTAÇÕES
+# MOVIMENTAÇÕES (VERSÃO CORRIGIDA - Anti-duplicação)
 # ────────────────────────────────────────────────
+
 @app.route('/api/movimentacoes/entrada', methods=['POST'])
 def registrar_entrada():
     try:
         user_id = get_current_user_id()
         data = request.get_json()
-        qtd = validar_movimentacao(data, 'entrada')
+        
+        qtd = int(float(data.get('quantidade', 0)))
+        if qtd <= 0:
+            return jsonify({"error": "Quantidade deve ser positiva"}), 400
 
+        produto_id = data['produto_id']
+        observacao = data.get('observacao', '').strip()
+
+        print(f"[ENTRADA] Iniciando - Produto: {produto_id} | Qtd: {qtd}")
+
+        # Proteção contra duplicação MELHORADA: usa um campo 'created_at' mais preciso
+        # e só considera duplicada se for exatamente a mesma quantidade + mesmo observacao nos últimos 3 segundos
+        from datetime import datetime, timedelta
+        tres_segundos_atras = (datetime.now() - timedelta(seconds=3)).isoformat()
+
+        existing = supabase.table('movimentacoes') \
+            .select('id') \
+            .eq('produto_id', produto_id) \
+            .eq('tipo', 'entrada') \
+            .eq('quantidade', qtd) \
+            .eq('observacao', observacao) \
+            .gte('created_at', tres_segundos_atras) \
+            .execute()
+
+        if existing.data:
+            print("[ENTRADA] Duplicada detectada - ignorando")
+            return jsonify({"success": True, "mensagem": "Entrada já registrada (duplicada ignorada)"}), 200
+
+        # Inserir movimentação
         mov = {
             'user_id': user_id,
-            'produto_id': data['produto_id'],
+            'produto_id': produto_id,
             'tipo': 'entrada',
             'quantidade': qtd,
-            'observacao': data.get('observacao', '').strip()
+            'observacao': observacao
         }
-
         supabase.table('movimentacoes').insert(mov).execute()
-        atualizar_estoque(data['produto_id'], +qtd)
+        print("[ENTRADA] Movimentação inserida com sucesso")
 
-        return jsonify({"success": True, "mensagem": "Entrada registrada"}), 201
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        # Atualizar estoque
+        atualizar_estoque(produto_id, qtd)
+        print(f"[ENTRADA SUCESSO] +{qtd} unidades")
+
+        return jsonify({"success": True, "mensagem": f"Entrada de {qtd} unidades registrada"}), 201
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"[ERRO ENTRADA] {str(e)}")
+        return jsonify({"error": str(e)}), 400
+
 
 @app.route('/api/movimentacoes/saida', methods=['POST'])
 def registrar_saida():
     try:
         user_id = get_current_user_id()
         data = request.get_json()
-        qtd = validar_movimentacao(data, 'saída')
+        
+        qtd = int(float(data.get('quantidade', 0)))
+        if qtd <= 0:
+            return jsonify({"error": "Quantidade deve ser positiva"}), 400
+
+        produto_id = data['produto_id']
+        observacao = data.get('observacao', '').strip()
+
+        print(f"[SAÍDA] Iniciando - Produto: {produto_id} | Qtd: {qtd}")
+
+        # Proteção contra duplicação
+        from datetime import datetime, timedelta
+        cinco_segundos_atras = (datetime.now() - timedelta(seconds=5)).isoformat()
+
+        existing = supabase.table('movimentacoes') \
+            .select('id') \
+            .eq('produto_id', produto_id) \
+            .eq('tipo', 'saida') \
+            .eq('quantidade', qtd) \
+            .gte('created_at', cinco_segundos_atras) \
+            .execute()
+
+        if existing.data:
+            print("[SAÍDA] Duplicada detectada - ignorando")
+            return jsonify({"success": True, "mensagem": "Saída já registrada"}), 200
 
         mov = {
             'user_id': user_id,
-            'produto_id': data['produto_id'],
+            'produto_id': produto_id,
             'tipo': 'saida',
             'quantidade': qtd,
-            'observacao': data.get('observacao', '').strip()
+            'observacao': observacao
         }
-
         supabase.table('movimentacoes').insert(mov).execute()
-        atualizar_estoque(data['produto_id'], -qtd)
+        atualizar_estoque(produto_id, -qtd)
 
-        return jsonify({"success": True, "mensagem": "Saída registrada"}), 201
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        print(f"[SAÍDA SUCESSO] -{qtd} unidades")
+        return jsonify({"success": True, "mensagem": f"Saída de {qtd} unidades registrada"}), 201
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"[ERRO SAÍDA] {str(e)}")
+        return jsonify({"error": str(e)}), 400
+
 
 @app.route('/api/vendas', methods=['POST'])
 def registrar_venda():
     try:
         user_id = get_current_user_id()
         data = request.get_json()
-        qtd = validar_movimentacao(data, 'venda')
+        
+        qtd = int(float(data.get('quantidade', 0)))
+        if qtd <= 0:
+            return jsonify({"error": "Quantidade deve ser positiva"}), 400
 
-        required = ['preco_unitario', 'cliente']
-        if not all(k in data for k in required):
-            return jsonify({"error": "Campos obrigatórios para venda: preco_unitario e cliente"}), 400
+        if not data.get('preco_unitario') or not data.get('cliente'):
+            return jsonify({"error": "Campos obrigatórios: preco_unitario e cliente"}), 400
+
+        produto_id = data['produto_id']
+        cliente = data['cliente'].strip()
+        preco_unitario = float(data['preco_unitario'])
+        observacao = data.get('observacao', '').strip()
+
+        print(f"[VENDA] Iniciando - Produto: {produto_id} | Qtd: {qtd} | Cliente: {cliente}")
+
+        # Proteção contra duplicação
+        from datetime import datetime, timedelta
+        cinco_segundos_atras = (datetime.now() - timedelta(seconds=5)).isoformat()
+
+        existing = supabase.table('movimentacoes') \
+            .select('id') \
+            .eq('produto_id', produto_id) \
+            .eq('tipo', 'venda') \
+            .eq('quantidade', qtd) \
+            .eq('cliente', cliente) \
+            .gte('created_at', cinco_segundos_atras) \
+            .execute()
+
+        if existing.data:
+            print("[VENDA] Duplicada detectada - ignorando")
+            return jsonify({"success": True, "mensagem": "Venda já registrada"}), 200
 
         mov = {
             'user_id': user_id,
-            'produto_id': data['produto_id'],
+            'produto_id': produto_id,
             'tipo': 'venda',
             'quantidade': qtd,
-            'preco_unitario': float(data['preco_unitario']),
-            'cliente': data['cliente'].strip(),
-            'observacao': data.get('observacao', '').strip()
+            'preco_unitario': preco_unitario,
+            'cliente': cliente,
+            'observacao': observacao
         }
-
         supabase.table('movimentacoes').insert(mov).execute()
-        atualizar_estoque(data['produto_id'], -qtd)
+        atualizar_estoque(produto_id, -qtd)
 
-        return jsonify({"success": True, "mensagem": "Venda registrada"}), 201
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        print(f"[VENDA SUCESSO] -{qtd} unidades")
+        return jsonify({"success": True, "mensagem": f"Venda de {qtd} unidades registrada para {cliente}"}), 201
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"[ERRO VENDA] {str(e)}")
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/api/vendas', methods=['GET'])
 def listar_vendas():
@@ -289,6 +391,82 @@ def home():
         "estoque_critico": critico,
         "vendas_no_mes": len(vendas_mes),
         "ultimas_vendas": ultimas
+    })
+    
+# ====================== AUTENTICAÇÃO ======================
+@app.route('/api/cadastro', methods=['POST'])
+def cadastro():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
+    
+    try:
+        response = supabase.auth.sign_up({
+            "email": email,
+            "password": password
+        })
+        return jsonify({
+            "mensagem": "Usuário criado com sucesso! Verifique seu email.",
+            "user": response.user
+        }), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"error": "Email e senha são obrigatórios"}), 400
+    
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": email,
+            "password": password
+        })
+        
+        # Correção: converter o objeto user para dicionário
+        user_dict = {
+            "id": response.user.id,
+            "email": response.user.email,
+            "email_confirmed_at": response.user.email_confirmed_at,
+            "created_at": response.user.created_at,
+            "last_sign_in_at": response.user.last_sign_in_at
+        }
+        
+        return jsonify({
+            "access_token": response.session.access_token,
+            "user": user_dict   # agora é um dicionário simples
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+    
+#==================== RELATORIOS ===================================    
+@app.route('/api/relatorio', methods=['GET'])
+def relatorio():
+    try:
+        user_id = get_current_user_id()
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 401
+
+    # Vendas do mês atual
+    response = supabase.table('movimentacoes') \
+        .select('*, produtos(nome)') \
+        .eq('user_id', user_id) \
+        .eq('tipo', 'venda') \
+        .order('created_at', desc=True) \
+        .execute()
+
+    return jsonify({
+        "vendas": response.data,
+        "total_vendas": len(response.data)
     })
 
 # ────────────────────────────────────────────────
