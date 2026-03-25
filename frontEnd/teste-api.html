@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste API - Gerenciador MEI</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #1e1e1e; color: #ddd; }
+    button { padding: 12px 20px; margin: 8px; font-size: 16px; cursor: pointer; }
+    pre { background: #333; padding: 15px; border-radius: 8px; overflow: auto; max-height: 400px; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Teste da API - Gerenciador MEI</h1>
+
+  <button onclick="fazerLogin()">1. Fazer Login</button>
+  <button onclick="cadastrarProduto()">2. Cadastrar Produto</button>
+  <button onclick="listarProdutos()">3. Listar Produtos</button>
+  <button onclick="registrarEntrada()">4. Registrar Entrada</button>
+  <button onclick="registrarVenda()">5. Registrar Venda</button>
+  <button onclick="verDashboard()">6. Ver Dashboard</button>
+
+  <h3>Resultado:</h3>
+  <pre id="resultado">Clique em um botão para testar...</pre>
+
+  <script>
+    const API_URL = "http://localhost:5000/api";
+    let token = "";
+
+    // ==================== LOGIN ====================
+    async function fazerLogin() {
+      const email = prompt("Digite o email:", "slacr30@gmail.com");
+      const senha = prompt("Digite a senha:");
+
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: senha })
+      });
+
+      const data = await res.json();
+      if (data.access_token) {
+        token = data.access_token;
+        document.getElementById("resultado").textContent = 
+          `✅ Login feito!\nToken recebido (primeiros 100 chars):\n${token.substring(0, 100)}...`;
+      } else {
+        document.getElementById("resultado").textContent = "❌ Erro: " + JSON.stringify(data);
+      }
+    }
+
+    // ==================== CADASTRAR PRODUTO ====================
+    async function cadastrarProduto() {
+      if (!token) return alert("Faça login primeiro!");
+
+      const res = await fetch(`${API_URL}/produtos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nome: "Boné Teste HTML",
+          categoria: "Acessórios",
+          preco: 39.90,
+          quantidade: 20,
+          estoque_minimo: 5
+        })
+      });
+
+      const data = await res.json();
+      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+    }
+
+    // ==================== LISTAR PRODUTOS ====================
+    async function listarProdutos() {
+      if (!token) return alert("Faça login primeiro!");
+
+      const res = await fetch(`${API_URL}/produtos`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+    }
+
+    // ==================== ENTRADA ====================
+    let isProcessing = false;
+
+    async function registrarEntrada() {
+        if (isProcessing) return;
+        isProcessing = true;
+    
+        if (!token) {
+            isProcessing = false;
+            return alert("Faça login primeiro!");
+        }
+    
+        const produtoId = prompt("Digite o ID do produto:");
+        if (!produtoId) {
+            isProcessing = false;
+            return;
+        }
+    
+        const quantidade = parseInt(prompt("Quantidade de entrada:", "10"));
+        if (!quantidade || quantidade <= 0) {
+            isProcessing = false;
+            return alert("Quantidade inválida!");
+        }
+    
+        const observacao = prompt("Observação (opcional):", "Entrada via teste");
+    
+        try {
+            const res = await fetch(`${API_URL}/movimentacoes/entrada`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    produto_id: produtoId,
+                    quantidade: quantidade,
+                    observacao: observacao
+                })
+            });
+        
+            const data = await res.json();
+            document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+        
+            if (res.ok) {
+                alert(`✅ Entrada de ${quantidade} unidades registrada!`);
+            }
+        } catch (e) {
+            alert("Erro na requisição");
+        } finally {
+            isProcessing = false;
+        }
+    }
+
+    // ==================== VENDA ====================
+    async function registrarVenda() {
+    if (!token) return alert("Faça login primeiro!");
+
+    const produtoId = prompt("Digite o ID do produto:");
+    if (!produtoId) return;
+
+    const quantidade = parseInt(prompt("Quantidade vendida:", "5"));
+    if (!quantidade || quantidade <= 0) {
+        return alert("Quantidade inválida!");
+    }
+
+    const precoUnitario = parseFloat(prompt("Preço unitário:", "45.00"));
+    const cliente = prompt("Nome do cliente:", "Cliente Teste");
+    const observacao = prompt("Observação (opcional):", "Venda via teste HTML");
+
+    const res = await fetch(`${API_URL}/vendas`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            produto_id: produtoId,
+            quantidade: quantidade,
+            preco_unitario: precoUnitario,
+            cliente: cliente,
+            observacao: observacao
+        })
+    });
+
+    const data = await res.json();
+    document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+
+    if (res.ok) {
+        alert(`✅ Venda de ${quantidade} unidade(s) registrada com sucesso!`);
+    }
+}
+
+    // ==================== DASHBOARD ====================
+    async function verDashboard() {
+      if (!token) return alert("Faça login primeiro!");
+
+      const res = await fetch(`${API_URL}/home`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
