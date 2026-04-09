@@ -1,6 +1,6 @@
 # Gerenciador de Estoque para MEI
-## Sistema simples e prático para Microempreendedores Individuais (MEI) controlarem estoque, vendas e faturamento.
-## Desenvolvido em dupla para facilitar o dia a dia de pequenos negócios.
+Sistema simples e prático para Microempreendedores Individuais (MEI) controlarem estoque, vendas e faturamento.
+Desenvolvido em dupla para facilitar o dia a dia de pequenos negócios.
 
 # ✨ Funcionalidades
 
