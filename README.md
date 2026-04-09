@@ -72,34 +72,35 @@ Filtro de produtos por status (crítico / normal)
    O backend ficará disponível em: http://127.0.0.1:5000
 
    
-2. Frontend
-Abra a pasta frontEnd e execute o index.html com Live Server (extensão do VS Code) ou diretamente no navegador.
+2. Frontend:
+   
+   Abra a pasta frontEnd e execute o index.html com Live Server (extensão do VS Code) ou diretamente no navegador.
 
-## 🔑 Principais Rotas da API
+   ## 🔑 Principais Rotas da API
 
-| Método | Rota                          | Descrição                              |
-|--------|-------------------------------|----------------------------------------|
-| GET    | `/api/teste`                  | Testa se o backend está funcionando    |
-| GET    | `/api/produtos`               | Lista todos os produtos do usuário     |
-| POST   | `/api/produtos`               | Cria um novo produto                   |
-| POST   | `/api/movimentacoes/entrada`  | Registra entrada de estoque            |
-| POST   | `/api/movimentacoes/saida`    | Registra saída de estoque              |
-| POST   | `/api/vendas`                 | Registra uma venda                     |
-| GET    | `/api/home`                   | Dados para o dashboard                 |
+      | Método | Rota                          | Descrição                              |
+      |--------|-------------------------------|----------------------------------------|
+      | GET    | `/api/teste`                  | Testa se o backend está funcionando    |
+      | GET    | `/api/produtos`               | Lista todos os produtos do usuário     |
+      | POST   | `/api/produtos`               | Cria um novo produto                   |
+      | POST   | `/api/movimentacoes/entrada`  | Registra entrada de estoque            |
+      | POST   | `/api/movimentacoes/saida`    | Registra saída de estoque              |
+      | POST   | `/api/vendas`                 | Registra uma venda                     |
+      | GET    | `/api/home`                   | Dados para o dashboard                 |
+      
+      Todas as rotas protegidas por autenticação JWT do Supabase (header Authorization: Bearer <token>).
 
-Todas as rotas protegidas por autenticação JWT do Supabase (header Authorization: Bearer <token>).
+   ## 🔐 Autenticação
 
-## 🔐 Autenticação
-
-Utiliza autenticação do Supabase Auth
-O token deve ser enviado em todas as requisições autenticadas
-Atualmente recomenda-se usar Service Role Key no backend durante o desenvolvimento (ignora RLS)
-
-## 📊 Banco de Dados (Supabase)
-Principais tabelas:
-
-produtos
-movimentacoes
+   Utiliza autenticação do Supabase Auth
+   O token deve ser enviado em todas as requisições autenticadas
+   Atualmente recomenda-se usar Service Role Key no backend durante o desenvolvimento (ignora RLS)
+  
+   ## 📊 Banco de Dados (Supabase)
+   Principais tabelas:
+  
+   produtos
+   movimentacoes
 
 ## 👥 Equipe
 
