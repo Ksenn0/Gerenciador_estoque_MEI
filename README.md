@@ -38,38 +38,26 @@ Filtro de produtos por status (crítico / normal)
   └── README.md
 ```
 ## 🚀 Como Executar Localmente
-1. Backend
-   ```bash
-    # Clone o repositório
-    git clone https://github.com/Ksenn0/Gerenciador_estoque_MEI.git
-    cd Gerenciador_estoque_MEI
-    
-    # Crie ambiente virtual (recomendado)
-    python -m venv venv
-    
-    # Ative o ambiente
-    # Windows:
-    venv\Scripts\activate
-    # Linux / Mac:
-    source venv/bin/activate
-    
-    # Instale as dependências
-    pip install -r requirements.txt
-    
-    # Configure as variáveis de ambiente
-    cp .env.example .env
-   ```
-
-  Edite o arquivo .env:
-    ```bash
-       SUPABASE_URL=https://seu-projeto.supabase.co
-       SUPABASE_KEY=sua_chave_aqui          # Service Role Key (recomendado para MVP)```
-       
-  Rode o servidor
-    ```bash
-      python app.py
-    ```
-    O backend ficará disponível em: http://127.0.0.1:5000
+  ```bash
+  # Clone o repositório
+  git clone https://github.com/Ksenn0/Gerenciador_estoque_MEI.git
+  cd Gerenciador_estoque_MEI
+  
+  # Crie ambiente virtual (recomendado)
+  python -m venv venv
+  
+  # Ative o ambiente
+  # Windows:
+  venv\Scripts\activate
+  # Linux / Mac:
+  source venv/bin/activate
+  
+  # Instale as dependências
+  pip install -r requirements.txt
+  
+  # Configure as variáveis de ambiente
+  cp .env.example .env
+  ```
 
 2. Frontend
 Abra a pasta frontEnd e execute o index.html com Live Server (extensão do VS Code) ou diretamente no navegador.
