@@ -104,7 +104,8 @@ Filtro de produtos por status (crítico / normal)
 
 ## 👥 Equipe
 Backend & Supabase: Kauann Senna (Ksenn0)
- Frontend: Iohan Bryan da Silva Fortaleza (IohanBryan) 
+
+Frontend: Iohan Bryan da Silva Fortaleza (IohanBryan) 
 
 ## 📄 Licença
 Este projeto é para uso pessoal e aprendizado. Fique à vontade para estudar e modificar.
