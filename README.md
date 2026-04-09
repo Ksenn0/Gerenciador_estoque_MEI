@@ -1,7 +1,8 @@
-Gerenciador de Estoque para MEI
-Sistema simples e prático para Microempreendedores Individuais (MEI) controlarem estoque, vendas e faturamento.
-Desenvolvido em dupla para facilitar o dia a dia de pequenos negócios.
-✨ Funcionalidades
+# Gerenciador de Estoque para MEI
+## Sistema simples e prático para Microempreendedores Individuais (MEI) controlarem estoque, vendas e faturamento.
+## Desenvolvido em dupla para facilitar o dia a dia de pequenos negócios.
+
+# ✨ Funcionalidades
 
 Cadastro e listagem de produtos
 Controle de estoque (entradas, saídas e vendas)
@@ -22,7 +23,7 @@ Filtro de produtos por status (crítico / normal)
 | Autenticação| Supabase Auth               |
 | Frontend    | HTML5, CSS3 e JavaScript puro |
 
-📁 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 ```bash
   Gerenciador_estoque_MEI/
   ├── app.py                    # Backend (Flask)
@@ -36,7 +37,7 @@ Filtro de produtos por status (crítico / normal)
   │   └── js/
   └── README.md
 ```
-🚀 Como Executar Localmente
+## 🚀 Como Executar Localmente
 1. Backend
    ```bash
     # Clone o repositório
@@ -64,7 +65,7 @@ Edite o arquivo .env:
    SUPABASE_URL=https://seu-projeto.supabase.co
    SUPABASE_KEY=sua_chave_aqui          # Service Role Key (recomendado para MVP)
    ```
-# Rode o servidor
+### Rode o servidor
   ```bash
    python app.py
 ```
@@ -87,19 +88,19 @@ Abra a pasta frontEnd e execute o index.html com Live Server (extensão do VS Co
 
 Todas as rotas protegidas por autenticação JWT do Supabase (header Authorization: Bearer <token>).
 
-🔐 Autenticação
+## 🔐 Autenticação
 
 Utiliza autenticação do Supabase Auth
 O token deve ser enviado em todas as requisições autenticadas
 Atualmente recomenda-se usar Service Role Key no backend durante o desenvolvimento (ignora RLS)
 
-📊 Banco de Dados (Supabase)
+## 📊 Banco de Dados (Supabase)
 Principais tabelas:
 
 produtos
 movimentacoes
 
-👥 Equipe
+## 👥 Equipe
 
 Backend & Supabase: Kauann Senna (Ksenn0)
 Frontend: [Nome do seu amigo]
