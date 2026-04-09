@@ -60,16 +60,16 @@ Filtro de produtos por status (crítico / normal)
     cp .env.example .env
    ```
 
-Edite o arquivo .env:
-  ```bash
-     SUPABASE_URL=https://seu-projeto.supabase.co
-     SUPABASE_KEY=sua_chave_aqui          # Service Role Key (recomendado para MVP)
-  ```
-### Rode o servidor
-  ```bash
-     python app.py
-```
-O backend ficará disponível em: http://127.0.0.1:5000
+  Edite o arquivo .env:
+    ```bash
+       SUPABASE_URL=https://seu-projeto.supabase.co
+       SUPABASE_KEY=sua_chave_aqui          # Service Role Key (recomendado para MVP)```
+       
+  Rode o servidor
+    ```bash
+      python app.py
+    ```
+    O backend ficará disponível em: http://127.0.0.1:5000
 
 2. Frontend
 Abra a pasta frontEnd e execute o index.html com Live Server (extensão do VS Code) ou diretamente no navegador.
