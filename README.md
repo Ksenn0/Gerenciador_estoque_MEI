@@ -2,7 +2,7 @@
 Sistema simples e prático para Microempreendedores Individuais (MEI) controlarem estoque, vendas e faturamento.
 Desenvolvido em dupla para facilitar o dia a dia de pequenos negócios.
 
-# ✨ Funcionalidades
+## ✨ Funcionalidades
 
 Cadastro e listagem de produtos
 Controle de estoque (entradas, saídas e vendas)
@@ -61,13 +61,13 @@ Filtro de produtos por status (crítico / normal)
    ```
 
 Edite o arquivo .env:
-```bash
-   SUPABASE_URL=https://seu-projeto.supabase.co
-   SUPABASE_KEY=sua_chave_aqui          # Service Role Key (recomendado para MVP)
-   ```
+  ```bash
+     SUPABASE_URL=https://seu-projeto.supabase.co
+     SUPABASE_KEY=sua_chave_aqui          # Service Role Key (recomendado para MVP)
+  ```
 ### Rode o servidor
   ```bash
-   python app.py
+     python app.py
 ```
 O backend ficará disponível em: http://127.0.0.1:5000
 
