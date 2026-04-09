@@ -103,9 +103,7 @@ Filtro de produtos por status (crítico / normal)
    movimentacoes
 
 ## 👥 Equipe
-
 Backend & Supabase: Kauann Senna (Ksenn0)
-Frontend: [Nome do seu amigo]
 
 ## 📄 Licença
 Este projeto é para uso pessoal e aprendizado. Fique à vontade para estudar e modificar.
